@@ -65,24 +65,23 @@ changelog:
       - Merge pull request
       - Merge branch
 
-brews:
-  - name: devlog
-    ids:
-      - tar
-    repository:
-      owner: leffen
-      name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    directory: Formula
-    homepage: "https://devlog.asd09.com"
-    description: "CLI tool for DevLog Daily - Journal your development progress"
-    license: "MIT"
-    install: |
-      bin.install "devlog"
-    test: |
-      system "#{bin}/devlog", "--version"
-    # Skip homebrew if token not set (for local testing)
-    skip_upload: auto
+# Homebrew tap (uncomment and set HOMEBREW_TAP_TOKEN to enable)
+# brews:
+#   - name: devlog
+#     ids:
+#       - tar
+#     repository:
+#       owner: leffen
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+#     directory: Formula
+#     homepage: "https://devlog.asd09.com"
+#     description: "CLI tool for DevLog Daily - Journal your development progress"
+#     license: "MIT"
+#     install: |
+#       bin.install "devlog"
+#     test: |
+#       system "#{bin}/devlog", "--version"
 
 # Release to GitHub
 release:
