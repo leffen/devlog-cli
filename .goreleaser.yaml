@@ -1,0 +1,113 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+project_name: devlog
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: devlog
+    main: ./main.go
+    binary: devlog
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/leffen/devlog-cli/cmd.Version={{.Version}}
+      - -X github.com/leffen/devlog-cli/cmd.Commit={{.Commit}}
+
+archives:
+  - id: tar
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    files:
+      - README.md
+  - id: zip
+    formats:
+      - zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    files:
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: devlog
+    ids:
+      - tar
+    repository:
+      owner: leffen
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://devlog.asd09.com"
+    description: "CLI tool for DevLog Daily - Journal your development progress"
+    license: "MIT"
+    install: |
+      bin.install "devlog"
+    test: |
+      system "#{bin}/devlog", "--version"
+    # Skip homebrew if token not set (for local testing)
+    skip_upload: auto
+
+# Release to GitHub
+release:
+  github:
+    owner: leffen
+    name: devlog-cli
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## DevLog CLI {{ .Version }}
+
+    Install with:
+    ```bash
+    # macOS/Linux (Homebrew)
+    brew install leffen/tap/devlog
+
+    # Go install
+    go install github.com/leffen/devlog-cli@{{ .Tag }}
+
+    # Or download binary from assets below
+    ```
+  footer: |
+    **Full Changelog**: https://github.com/leffen/devlog-cli/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+# Announce release (optional)
+announce:
+  skip: true
