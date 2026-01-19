@@ -87,7 +87,7 @@ brews:
 release:
   github:
     owner: leffen
-    name: devlog
+    name: devlog-cli
   draft: false
   prerelease: auto
   mode: replace
