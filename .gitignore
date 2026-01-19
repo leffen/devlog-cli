@@ -1,6 +1,6 @@
-# Binaries
-devlog
-devlog.exe
+# Binaries (root level only)
+/devlog
+/devlog.exe
 *.exe
 *.dll
 *.so

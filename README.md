@@ -21,7 +21,7 @@ brew install leffen/tap/devlog
 ### Go Install
 
 ```bash
-go install github.com/leffen/devlog-cli@latest
+go install github.com/leffen/devlog-cli/cmd/devlog@latest
 ```
 
 ### Download Binary

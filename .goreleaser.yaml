@@ -24,8 +24,8 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/leffen/devlog-cli/cmd.Version={{.Version}}
-      - -X github.com/leffen/devlog-cli/cmd.Commit={{.Commit}}
+      - -X github.com/leffen/devlog-cli/internal/cmd.Version={{.Version}}
+      - -X github.com/leffen/devlog-cli/internal/cmd.Commit={{.Commit}}
 
 archives:
   - id: tar
@@ -100,7 +100,7 @@ release:
     brew install leffen/tap/devlog
 
     # Go install
-    go install github.com/leffen/devlog-cli@{{ .Tag }}
+    go install github.com/leffen/devlog-cli/cmd/devlog@{{ .Tag }}
 
     # Or download binary from assets below
     ```

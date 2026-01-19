@@ -80,9 +80,10 @@ go run ./main.go new -t "Test" -c "Content"
 ## Architecture & Code Organization
 
 ### Entry Point & CLI Structure
-- `main.go`: Minimal entry point that delegates to `cmd.Execute()`
-- `cmd/root.go`: Root Cobra command with version info and global flags
-- `cmd/*.go`: Each subcommand (new, log, list, summary, config) in separate files
+- `main.go`: Root entry point that delegates to `internal/cmd.Execute()`
+- `cmd/devlog/main.go`: Installable entry point for `go install` (installs as `devlog`)
+- `internal/cmd/root.go`: Root Cobra command with version info and global flags
+- `internal/cmd/*.go`: Each subcommand (new, log, list, summary, config, prompt) in separate files
 
 ### Core Packages
 
@@ -146,7 +147,7 @@ Build-time variables set via ldflags:
 ## Development Patterns
 
 ### Adding New Subcommands
-1. Create new file in `cmd/` (e.g., `cmd/mycommand.go`)
+1. Create new file in `internal/cmd/` (e.g., `internal/cmd/mycommand.go`)
 2. Define command struct using Cobra pattern
 3. Implement `run<CommandName>` function
 4. Register command in `init()` with `rootCmd.AddCommand(myCmd)`
