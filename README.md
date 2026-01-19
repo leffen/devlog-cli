@@ -15,7 +15,7 @@ A command-line tool for creating entries in DevLog Daily. Perfect for developers
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew install devlog-daily/tap/devlog
+brew install leffen/tap/devlog
 ```
 
 ### Go Install
@@ -31,7 +31,8 @@ Download the latest release from the [GitHub Releases](https://github.com/leffen
 ### From source
 
 ```bash
-cd tools/devlog-cli
+git clone https://github.com/leffen/devlog-cli.git
+cd devlog-cli
 make build
 make install-local  # Installs to /usr/local/bin
 ```
@@ -215,10 +216,10 @@ make release
 
 To create a new release:
 
-1. Tag the commit with the CLI version prefix:
+1. Tag the commit:
    ```bash
-   git tag cli/v1.0.0
-   git push origin cli/v1.0.0
+   git tag v1.0.0
+   git push origin v1.0.0
    ```
 
 2. GitHub Actions will automatically build and publish the release.
