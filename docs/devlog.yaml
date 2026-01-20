@@ -1,0 +1,176 @@
+name: devlog
+description: Log development progress using DevLog CLI with markdown formatting and git context
+version: 1.1.0
+
+prompt: |
+  You are helping the user create a DevLog entry to document their development progress.
+
+  ## Your Task
+
+  1. **Gather git context**: Always collect repository information:
+     - Run `git remote get-url origin` to get the repository URL
+     - Run `git branch --show-current` to get the current branch
+     - Check git status and recent commits
+     - Review any modified files
+
+  2. **Analyze recent work**: Understand what was done in this session:
+     - Review modified and new files
+     - Check commit messages if relevant
+     - Understand the scope and impact of changes
+
+  3. **Determine appropriate log type**:
+     - **Feature completion**: Use `devlog new` with `--include-git` for new functionality
+     - **Bug fix**: Use `devlog new` with clear before/after description
+     - **Session summary**: Use `devlog summary` for end-of-session wrap-ups
+     - **Architecture decision**: Use `devlog new` with `--tags "architecture,decision"`
+     - **Quick log from commits**: Use `devlog log` to auto-generate from today's commits
+
+  4. **Format entry in Markdown**: The content (-c) must be well-structured markdown:
+     - Start with `## Summary` section (2-3 sentences overview)
+     - Use `## Features Implemented` or relevant section headers
+     - Include `## Key Design Decisions` for architecture choices
+     - Add code examples in fenced code blocks when helpful
+     - **Always end with `## Git Context` section** containing:
+       - **Remote:** (git remote URL)
+       - **Branch:** (current branch name)
+       - **Project:** (derived from repo name, optional)
+
+  5. **Create the log entry**:
+     - Craft a concise, descriptive title (5-10 words)
+     - Format the body as markdown with proper sections
+     - Include relevant context (why the change was made, not just what)
+     - Add appropriate tags for categorization
+     - Always include --include-git flag to capture git metadata
+
+  ## DevLog Commands Reference
+
+  ```bash
+  # Standard log entry
+  devlog new -t "Title" -c "Description"
+
+  # With git context (includes branch and commits)
+  devlog new -t "Feature complete" -c "Description" --include-git
+
+  # Auto-generate from today's commits
+  devlog log
+
+  # Session summary with structured fields
+  devlog summary --session "Session name" --achievements "What was done" --next-steps "What's next"
+
+  # With tags for categorization
+  devlog new -t "Title" -c "Description" --tags "feature,backend,api"
+
+  # With context flag (job/project/fun)
+  devlog new -t "Title" -c "Description" --context job
+  ```
+
+  ## When to Create Entries
+
+  - ✅ After completing a feature or significant change
+  - ✅ After fixing a bug
+  - ✅ At the end of a coding session
+  - ✅ When making architectural decisions
+  - ✅ After major refactoring
+  - ❌ For trivial changes (typos, formatting)
+  - ❌ For work-in-progress (unless at session end)
+
+  ## Entry Quality Guidelines
+
+  **Good titles:**
+  - "Add user authentication with JWT"
+  - "Fix memory leak in webhook handler"
+  - "Refactor database connection pooling"
+  - "Implement DevLog CLI integration"
+
+  **Bad titles:**
+  - "Updates"
+  - "Fixed stuff"
+  - "Changes to code"
+
+  **Entry Body Structure (Markdown):**
+
+  All entries must be formatted as markdown with clear sections:
+
+  ```markdown
+  ## Summary
+
+  Brief overview of what was accomplished (2-3 sentences).
+
+  ## Features Implemented (or relevant section)
+
+  - Feature 1 with details
+  - Feature 2 with details
+
+  ### Subsections if needed
+  - More granular details
+
+  ## Key Design Decisions (optional)
+
+  - Decision 1 and rationale
+  - Decision 2 and trade-offs
+
+  ## Usage Examples (optional)
+
+  \`\`\`bash
+  # Example commands or code
+  devlog new -t "Title" -c "Content"
+  \`\`\`
+
+  ## Git Context
+
+  - **Remote:** git@github.com:user/repo.git
+  - **Branch:** main
+  - **Project:** repo-name
+  ```
+
+  **Important formatting rules:**
+  - Use `##` for main sections
+  - Use `###` for subsections
+  - Use bullet lists with `-` or `*`
+  - Use triple backticks for code blocks with language tags
+  - Use **bold** for emphasis on key terms
+  - Always include the Git Context section at the end
+
+  ## Common Tag Categories
+
+  - **Type**: feature, bugfix, refactor, docs, test, chore
+  - **Area**: frontend, backend, infra, api, database
+  - **Technology**: go, typescript, react, kubernetes, etc.
+  - **Impact**: breaking-change, performance, security
+
+  ## Workflow
+
+  1. **Gather git information:**
+     - Run `git remote get-url origin` to get repository URL
+     - Run `git branch --show-current` to get current branch
+     - Run `git status` to see what changed
+     - Review recent commits if needed
+
+  2. **Analyze changes:**
+     - Understand what was modified/added/deleted
+     - Identify the scope and purpose of changes
+
+  3. **Format markdown content:**
+     - Create Summary section
+     - Add relevant sections (Features, Decisions, Examples)
+     - Add Git Context section with repo and branch
+
+  4. **Confirm with user:**
+     - Show the proposed title and markdown content
+     - Allow user to adjust before submission
+
+  5. **Execute devlog command:**
+     - Use `devlog new` with `-t`, `-c`, `--tags`, `--project`, and `--include-git`
+     - Confirm successful creation
+
+  ## Important Notes
+
+  - **Markdown is required**: All entry bodies must be properly formatted markdown
+  - **Git Context is mandatory**: Always include the Git Context section with remote and branch
+  - **Always use --include-git flag**: This captures git metadata automatically
+  - Use proper shell escaping for titles and descriptions with special characters (use heredoc or quotes carefully)
+  - For multi-line content, consider using heredoc or escape newlines properly
+  - Use session summaries for end-of-day wrap-ups
+  - Don't log work that isn't committed yet (unless it's a session summary)
+
+  Now, help the user create an appropriate DevLog entry based on their recent work.
