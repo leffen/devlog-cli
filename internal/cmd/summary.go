@@ -23,6 +23,8 @@ var (
 	summaryMood         string
 	summaryTags         []string
 	summaryIncludeGit   bool
+	summarySource       string
+	summaryRepo         string
 )
 
 var summaryCmd = &cobra.Command{
@@ -94,6 +96,20 @@ func runSummary(cmd *cobra.Command, args []string) {
 	// Generate content
 	content := generateSummaryStructure()
 
+	// Determine source (default to "cli")
+	source := summarySource
+	if source == "" {
+		source = "cli"
+	}
+
+	// Determine repo (auto-detect from git if not specified)
+	repo := summaryRepo
+	if repo == "" && git.IsInGitRepo() {
+		if gitCtx, err := git.GetContext(); err == nil && gitCtx.Project != "" {
+			repo = gitCtx.Project
+		}
+	}
+
 	// Build request
 	req := &api.CreateEntryRequest{
 		Title:      title,
@@ -102,6 +118,8 @@ func runSummary(cmd *cobra.Command, args []string) {
 		Mood:       summaryMood,
 		Tags:       summaryTags,
 		Visibility: summaryVisibility,
+		Source:     source,
+		Repository: repo,
 	}
 
 	// Add git context if requested
@@ -198,6 +216,8 @@ func init() {
 	summaryCmd.Flags().StringVarP(&summaryMood, "mood", "m", "", "Mood emoji or text")
 	summaryCmd.Flags().StringSliceVar(&summaryTags, "tags", nil, "Tags (comma-separated)")
 	summaryCmd.Flags().BoolVar(&summaryIncludeGit, "include-git", false, "Include git context")
+	summaryCmd.Flags().StringVar(&summarySource, "source", "", "Source/agent identifier (default: cli)")
+	summaryCmd.Flags().StringVar(&summaryRepo, "repo", "", "Repository name (auto-detected from git if not set)")
 
 	summaryCmd.MarkFlagRequired("session")
 	summaryCmd.MarkFlagRequired("achievements")

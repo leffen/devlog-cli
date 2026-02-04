@@ -43,6 +43,8 @@ type Entry struct {
 	Mood       string   `json:"mood,omitempty"`
 	Tags       []string `json:"tags,omitempty"`
 	Visibility string   `json:"visibility,omitempty"` // private, public
+	Source     string   `json:"source,omitempty"`     // cli, claude-code, cursor, etc.
+	Repository string   `json:"repository,omitempty"` // repository name
 	Git        *GitInfo `json:"git,omitempty"`
 	CreatedAt  string   `json:"createdAt,omitempty"`
 	UpdatedAt  string   `json:"updatedAt,omitempty"`
@@ -64,6 +66,8 @@ type CreateEntryRequest struct {
 	Mood       string   `json:"mood,omitempty"`
 	Tags       []string `json:"tags,omitempty"`
 	Visibility string   `json:"visibility,omitempty"`
+	Source     string   `json:"source,omitempty"`     // cli, claude-code, cursor, etc.
+	Repository string   `json:"repository,omitempty"` // repository name
 	Git        *GitInfo `json:"git,omitempty"`
 }
 
@@ -76,6 +80,8 @@ type CreateEntryResponse struct {
 	Mood       string   `json:"mood"`
 	Tags       []string `json:"tags"`
 	Visibility string   `json:"visibility"`
+	Source     string   `json:"source"`
+	Repository string   `json:"repository"`
 	CreatedAt  string   `json:"createdAt"`
 	Message    string   `json:"message"`
 }

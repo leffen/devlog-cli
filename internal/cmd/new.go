@@ -26,6 +26,8 @@ var (
 	newEditor     bool
 	newAutoTitle  bool
 	newStdin      bool
+	newSource     string
+	newRepo       string
 )
 
 var newCmd = &cobra.Command{
@@ -139,6 +141,20 @@ func runNew(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	// Determine source (default to "cli")
+	source := newSource
+	if source == "" {
+		source = "cli"
+	}
+
+	// Determine repo (auto-detect from git if not specified)
+	repo := newRepo
+	if repo == "" && git.IsInGitRepo() {
+		if gitCtx, err := git.GetContext(); err == nil && gitCtx.Project != "" {
+			repo = gitCtx.Project
+		}
+	}
+
 	// Build request
 	req := &api.CreateEntryRequest{
 		Title:      title,
@@ -147,6 +163,8 @@ func runNew(cmd *cobra.Command, args []string) {
 		Mood:       newMood,
 		Tags:       newTags,
 		Visibility: newVisibility,
+		Source:     source,
+		Repository: repo,
 	}
 
 	// Add git context if requested
@@ -282,4 +300,6 @@ func init() {
 	newCmd.Flags().BoolVar(&newIncludeGit, "include-git", false, "Include git context (remote, branch)")
 	newCmd.Flags().BoolVar(&newEditor, "editor", false, "Open editor for content")
 	newCmd.Flags().BoolVar(&newAutoTitle, "auto-title", false, "Auto-generate title from content")
+	newCmd.Flags().StringVar(&newSource, "source", "", "Source/agent identifier (default: cli)")
+	newCmd.Flags().StringVar(&newRepo, "repo", "", "Repository name (auto-detected from git if not set)")
 }

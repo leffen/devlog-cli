@@ -19,6 +19,8 @@ var (
 	logProject    string
 	logVisibility string
 	logLimit      int
+	logSource     string
+	logRepo       string
 )
 
 var logCmd = &cobra.Command{
@@ -118,12 +120,26 @@ func runLog(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Determine source (default to "cli")
+	source := logSource
+	if source == "" {
+		source = "cli"
+	}
+
+	// Determine repo (auto-detect from git context if not specified)
+	repo := logRepo
+	if repo == "" && gitCtx.Project != "" {
+		repo = gitCtx.Project
+	}
+
 	// Build request
 	req := &api.CreateEntryRequest{
 		Title:      title,
 		Content:    content,
 		Context:    logProject,
 		Visibility: logVisibility,
+		Source:     source,
+		Repository: repo,
 		Git:        api.BuildGitInfo(gitCtx),
 	}
 
@@ -275,4 +291,6 @@ func init() {
 	logCmd.Flags().StringVarP(&logProject, "project", "p", "", "Project context (default from config)")
 	logCmd.Flags().StringVarP(&logVisibility, "visibility", "v", "", "Visibility (default from config)")
 	logCmd.Flags().IntVar(&logLimit, "limit", 50, "Maximum number of commits to include")
+	logCmd.Flags().StringVar(&logSource, "source", "", "Source/agent identifier (default: cli)")
+	logCmd.Flags().StringVar(&logRepo, "repo", "", "Repository name (auto-detected from git if not set)")
 }

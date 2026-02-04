@@ -147,7 +147,16 @@ func TestClaudePromptContent(t *testing.T) {
 	if !strings.Contains(claudePrompt, "When to Log") {
 		t.Error("prompt should contain When to Log section")
 	}
-	if !strings.Contains(claudePrompt, "Entry Guidelines") {
-		t.Error("prompt should contain Entry Guidelines section")
+	if !strings.Contains(claudePrompt, "Guidelines") {
+		t.Error("prompt should contain Guidelines section")
+	}
+	if !strings.Contains(claudePrompt, "--source") {
+		t.Error("prompt should contain --source flag")
+	}
+	if !strings.Contains(claudePrompt, "--repo") {
+		t.Error("prompt should contain --repo flag")
+	}
+	if !strings.Contains(claudePrompt, "Flag Reference") {
+		t.Error("prompt should contain Flag Reference section")
 	}
 }
