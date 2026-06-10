@@ -16,7 +16,7 @@ GOFMT=$(GOCMD) fmt
 GOVET=$(GOCMD) vet
 
 .PHONY: all build build-all clean install install-local test test-verbose test-coverage \
-        fmt lint vet deps version snapshot release-dry release check help \
+        fmt lint vet deps version snapshot release-dry release release-local check help \
         env-encrypt env-decrypt
 
 # Default target
@@ -133,13 +133,44 @@ snapshot:
 release-dry:
 	goreleaser release --skip=publish --clean
 
-# Create and publish a release.
-# Uses GITHUB_TOKEN / HOMEBREW_TAP_TOKEN from the environment if set,
-# otherwise falls back to the logged-in `gh` CLI token. Both the release repo
-# and the homebrew tap repo are owned by the same account, so one personal
-# token serves both. The token is resolved at runtime inside the shell (with
-# @ to suppress echo) so it is never printed to the terminal.
+# Which version component to bump for `make release` (major | minor | patch).
+BUMP ?= minor
+
+# Cut a release: bump the latest v* tag, then create and push the new tag.
+# Pushing the tag triggers the GitHub Actions release workflow, which runs
+# GoReleaser to build and publish. Override the component with BUMP=patch etc.
 release:
+	@latest=$$(git tag --list 'v*' --sort=-v:refname | head -n1); \
+	latest=$${latest:-v0.0.0}; \
+	ver=$${latest#v}; \
+	major=$$(echo "$$ver" | cut -d. -f1); \
+	minor=$$(echo "$$ver" | cut -d. -f2); \
+	patch=$$(echo "$$ver" | cut -d. -f3); \
+	case "$(BUMP)" in \
+		major) major=$$((major+1)); minor=0; patch=0;; \
+		minor) minor=$$((minor+1)); patch=0;; \
+		patch) patch=$$((patch+1));; \
+		*) echo "Error: BUMP must be major, minor, or patch (got '$(BUMP)')." >&2; exit 1;; \
+	esac; \
+	next="v$$major.$$minor.$$patch"; \
+	if [ -n "$$(git tag --list "$$next")" ]; then \
+		echo "Error: tag $$next already exists." >&2; exit 1; \
+	fi; \
+	if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Error: working tree is dirty; commit or stash changes first." >&2; exit 1; \
+	fi; \
+	echo "Releasing $$latest -> $$next ($(BUMP) bump)"; \
+	git tag -a "$$next" -m "Release $$next" && \
+	git push origin "$$next" && \
+	echo "Pushed $$next — GitHub Actions will build and publish the release."
+
+# Publish a release from the current machine instead of via CI.
+# Uses GITHUB_TOKEN / HOMEBREW_TAP_TOKEN from the environment if set, otherwise
+# falls back to the logged-in `gh` CLI token. Both the release repo and the
+# homebrew tap repo are owned by the same account, so one personal token serves
+# both. The token is resolved at runtime inside the shell (with @ to suppress
+# echo) so it is never printed to the terminal. Requires an existing tag.
+release-local:
 	@token="$${GITHUB_TOKEN:-$$(gh auth token 2>/dev/null)}"; \
 	if [ -z "$$token" ]; then \
 		echo "Error: no GitHub token found. Set GITHUB_TOKEN or run 'gh auth login -s repo'." >&2; \
@@ -233,7 +264,8 @@ help:
 	@echo "Release:"
 	@echo "  snapshot     Create snapshot release"
 	@echo "  release-dry  Dry run release"
-	@echo "  release      Create and publish release (uses gh token if env unset)"
+	@echo "  release      Bump version (BUMP=minor) + push tag; CI publishes"
+	@echo "  release-local Publish locally via goreleaser (uses gh token if env unset)"
 	@echo "  check        Check goreleaser config"
 	@echo ""
 	@echo "Secrets:"
