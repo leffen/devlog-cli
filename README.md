@@ -6,6 +6,7 @@ A command-line tool for creating entries in DevLog Daily. Perfect for developers
 
 - **Auto-detect git context** - Remote URL, project name, current branch
 - **Multiple input modes** - Stdin, file, editor, flags
+- **Markdown upload** - Upload one or many `.md` files with YAML frontmatter support
 - **Git log integration** - Create entries from today's commits
 - **Session summaries** - Structured summary of work sessions
 - **Claude Code integration** - Easy to use with AI coding assistants
@@ -90,6 +91,43 @@ devlog new --editor --auto-title
 
 # With tags
 devlog new -t "Bug fix" -c "Fixed memory leak" --tags "bugfix,performance"
+```
+
+### Upload markdown files
+
+Upload one or more existing markdown files. Each file becomes its own entry.
+The title is taken from the `--title` flag (single file only), then YAML
+frontmatter, then the first `# heading`, then the file name.
+
+```bash
+# Upload a single file
+devlog upload notes.md
+
+# Upload several files at once
+devlog upload daily/*.md
+
+# Apply shared metadata to every file
+devlog upload -p job --tags "standup,notes" monday.md tuesday.md
+
+# Preview without creating entries (no API key required)
+devlog upload --dry-run notes.md
+```
+
+Files may begin with an optional YAML frontmatter block that sets per-file
+metadata and overrides the command-line flags for that file:
+
+```markdown
+---
+title: My Entry
+project: job
+tags: [refactor, api]
+visibility: private
+mood: 🚀
+---
+
+# Heading
+
+Body content...
 ```
 
 ### Create entry from git commits
@@ -210,7 +248,17 @@ make snapshot
 # Dry run (validates everything)
 make release-dry
 
-# Create and publish release (requires GITHUB_TOKEN)
+# Create and publish release
+make release
+```
+
+`make release` needs a GitHub token with `repo` scope (it publishes the release
+and pushes the Homebrew cask to the tap repo). It uses `GITHUB_TOKEN` /
+`HOMEBREW_TAP_TOKEN` from the environment if set, otherwise falls back to the
+token from the logged-in [`gh`](https://cli.github.com/) CLI:
+
+```bash
+gh auth login -s repo   # one-time, if not already logged in
 make release
 ```
 
@@ -223,3 +271,29 @@ To create a new release:
    ```
 
 2. GitHub Actions will automatically build and publish the release.
+
+### Secrets (encrypted .env)
+
+Release tokens live in a local `.env` file, which is **git-ignored** and never
+committed. An encrypted copy (`.env.enc`) is committed instead, using
+[age](https://github.com/FiloSottile/age) with the keys in
+`~/.config/sops/age/keys.txt`.
+
+```bash
+# Encrypt .env -> .env.enc (commit this)
+make env-encrypt
+
+# Decrypt .env.enc -> .env (after cloning, or to update tokens)
+make env-decrypt
+```
+
+`.env.enc` is encrypted to every age public key in your keys file, so any of
+your identities can decrypt it. Point `AGE_KEYS` at a different file if your
+keys live elsewhere:
+
+```bash
+make env-encrypt AGE_KEYS=/path/to/keys.txt
+```
+
+After editing `.env` (e.g. rotating a token), re-run `make env-encrypt` and
+commit the updated `.env.enc`.

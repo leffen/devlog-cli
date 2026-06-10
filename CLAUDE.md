@@ -83,7 +83,7 @@ go run ./main.go new -t "Test" -c "Content"
 - `main.go`: Root entry point that delegates to `internal/cmd.Execute()`
 - `cmd/devlog/main.go`: Installable entry point for `go install` (installs as `devlog`)
 - `internal/cmd/root.go`: Root Cobra command with version info and global flags
-- `internal/cmd/*.go`: Each subcommand (new, log, list, summary, config, prompt) in separate files
+- `internal/cmd/*.go`: Each subcommand (new, upload, log, list, summary, config, prompt) in separate files
 
 ### Core Packages
 
@@ -116,6 +116,14 @@ go run ./main.go new -t "Test" -c "Content"
 - Git context inclusion via --include-git flag (uses config default)
 - Editor support: respects $EDITOR or $VISUAL, falls back to vi
 - Template in editor includes comment lines that are stripped on save
+
+**upload**: Upload one or more markdown files as entries
+- Accepts multiple file paths (e.g. `devlog upload daily/*.md`); each file becomes its own entry
+- Title resolution order: --title flag (single file only) → frontmatter `title` → first `# H1` heading → filename
+- Optional YAML frontmatter block (delimited by `---`) sets per-file metadata (title, project/context, tags, visibility, mood, source, repo) and overrides command-line flags for that file
+- Metadata precedence per file: explicit flag → frontmatter → config default
+- `--dry-run` previews resolved entries without creating them (and works without an API key)
+- Reuses a single git context across all files when --include-git is set
 
 **log**: Create entry from git commits
 - Defaults to today's commits if --since not specified

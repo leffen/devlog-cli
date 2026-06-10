@@ -16,7 +16,8 @@ GOFMT=$(GOCMD) fmt
 GOVET=$(GOCMD) vet
 
 .PHONY: all build build-all clean install install-local test test-verbose test-coverage \
-        fmt lint vet deps version snapshot release-dry release check help
+        fmt lint vet deps version snapshot release-dry release check help \
+        env-encrypt env-decrypt
 
 # Default target
 all: build
@@ -132,13 +133,44 @@ snapshot:
 release-dry:
 	goreleaser release --skip=publish --clean
 
-# Create and publish a release (requires GITHUB_TOKEN)
+# Create and publish a release.
+# Uses GITHUB_TOKEN / HOMEBREW_TAP_TOKEN from the environment if set,
+# otherwise falls back to the logged-in `gh` CLI token. Both the release repo
+# and the homebrew tap repo are owned by the same account, so one personal
+# token serves both. The token is resolved at runtime inside the shell (with
+# @ to suppress echo) so it is never printed to the terminal.
 release:
-	goreleaser release --clean
+	@token="$${GITHUB_TOKEN:-$$(gh auth token 2>/dev/null)}"; \
+	if [ -z "$$token" ]; then \
+		echo "Error: no GitHub token found. Set GITHUB_TOKEN or run 'gh auth login -s repo'." >&2; \
+		exit 1; \
+	fi; \
+	GITHUB_TOKEN="$$token" HOMEBREW_TAP_TOKEN="$${HOMEBREW_TAP_TOKEN:-$$token}" goreleaser release --clean
 
 # Check goreleaser config
 check:
 	goreleaser check
+
+## Secrets (age-encrypted .env)
+
+# Location of the age identities used for encrypt/decrypt. Override on the
+# command line if your keys live elsewhere: make env-encrypt AGE_KEYS=/path/keys.txt
+AGE_KEYS ?= $(HOME)/.config/sops/age/keys.txt
+
+# Encrypt .env -> .env.enc for every age public key in the identity file, so any
+# of your keys can decrypt it. Commit .env.enc; the plaintext .env stays ignored.
+env-encrypt:
+	@test -f .env || { echo "Error: no .env file to encrypt." >&2; exit 1; }
+	@test -f "$(AGE_KEYS)" || { echo "Error: age keys file not found: $(AGE_KEYS)" >&2; exit 1; }
+	@recipients=$$(grep -E '^# public key:' "$(AGE_KEYS)" | sed -E 's/^# public key: *//' | sed 's/^/-r /' | tr '\n' ' '); \
+	test -n "$$recipients" || { echo "Error: no age public keys found in $(AGE_KEYS)" >&2; exit 1; }; \
+	age -e $$recipients -o .env.enc .env && echo "Encrypted .env -> .env.enc"
+
+# Decrypt .env.enc -> .env using your age identities.
+env-decrypt:
+	@test -f .env.enc || { echo "Error: no .env.enc file to decrypt." >&2; exit 1; }
+	@test -f "$(AGE_KEYS)" || { echo "Error: age keys file not found: $(AGE_KEYS)" >&2; exit 1; }
+	@age -d -i "$(AGE_KEYS)" -o .env .env.enc && echo "Decrypted .env.enc -> .env"
 
 ## Utility targets
 
@@ -201,8 +233,12 @@ help:
 	@echo "Release:"
 	@echo "  snapshot     Create snapshot release"
 	@echo "  release-dry  Dry run release"
-	@echo "  release      Create and publish release"
+	@echo "  release      Create and publish release (uses gh token if env unset)"
 	@echo "  check        Check goreleaser config"
+	@echo ""
+	@echo "Secrets:"
+	@echo "  env-encrypt  Encrypt .env -> .env.enc (age)"
+	@echo "  env-decrypt  Decrypt .env.enc -> .env (age)"
 	@echo ""
 	@echo "Utility:"
 	@echo "  version      Show version info"

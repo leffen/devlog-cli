@@ -66,7 +66,7 @@ changelog:
       - Merge branch
 
 # Homebrew tap
-brews:
+homebrew_casks:
   - name: devlog
     ids:
       - tar
@@ -74,14 +74,20 @@ brews:
       owner: leffen
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    directory: Formula
+    directory: Casks
     homepage: "https://devlog.asd09.com"
     description: "CLI tool for DevLog Daily - Journal your development progress"
     license: "MIT"
-    install: |
-      bin.install "devlog"
-    test: |
-      system "#{bin}/devlog", "--version"
+    binaries:
+      - devlog
+    # Remove the quarantine attribute so the unsigned binary runs without
+    # macOS reporting it as "damaged".
+    hooks:
+      post:
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/devlog"]
+          end
 
 # Release to GitHub
 release:

@@ -23,3 +23,8 @@ Thumbs.db
 coverage.out
 coverage.html
 .claude
+
+# Secrets — keep the plaintext .env out of git; commit only the encrypted .env.enc
+.env
+.env.local
+!.env.enc
