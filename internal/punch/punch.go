@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,6 +14,7 @@ import (
 	"time"
 
 	"github.com/leffen/devlog-cli/internal/config"
+	"github.com/leffen/devlog-cli/internal/machine"
 )
 
 // FileName is the name of the JSONL store inside the config directory.
@@ -55,21 +55,6 @@ func ProjectFromDir(dir string) string {
 	return SanitizeProject(filepath.Base(dir))
 }
 
-// outboundIP returns the preferred outbound IP of this machine. It opens a UDP
-// socket to a public address (no packets are actually sent) to let the OS pick
-// the source interface. Falls back to an empty string if it cannot be resolved.
-func outboundIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return ""
-	}
-	defer conn.Close()
-	if addr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
-		return addr.IP.String()
-	}
-	return ""
-}
-
 // NewRecord builds a Record for the current machine and working directory.
 // If project is empty it is derived from the current directory name. The
 // timestamp is taken from now.
@@ -93,7 +78,7 @@ func NewRecord(project, comment string) (*Record, error) {
 	return &Record{
 		Timestamp: time.Now(),
 		Machine:   host,
-		IP:        outboundIP(),
+		IP:        machine.LocalIP(),
 		Dir:       dir,
 		Project:   project,
 		Comment:   strings.TrimSpace(comment),

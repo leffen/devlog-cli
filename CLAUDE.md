@@ -140,6 +140,16 @@ go run ./main.go new -t "Test" -c "Content"
 - Specific flags for session, time, achievements, blockers, next-steps
 - Generates markdown-formatted entry with sections
 
+**login**: Record a machine login event
+- Captures hostname, username, local IP, public IP, and OS/arch as a distinct `machine-event` entry
+- Sends `type: "machine-event"` plus a structured `machine` object (eventKind, hostname, username, localIp, publicIp, osArch) that the backend stores in frontmatter; the human-readable markdown table is still in the content
+- The backend `entries.type` column discriminates these from regular `log` entries; the web UI renders them with a 🖥️ badge in the timeline and entry view
+- Designed to be wired into the OS login flow (shell profile, systemd user service, Windows startup)
+- `--event` labels the event kind (default `login`; e.g. `logout`); sets source to `machine-<event>` and default tags `<event>,machine`
+- `--no-public-ip` skips the external public IP lookup (api.ipify.org); the lookup degrades gracefully when offline
+- `--dry-run` previews the entry without creating it (and works without an API key)
+- Machine info gathering lives in `internal/machine` (stdlib only, cross-platform); the `punch` command reuses `machine.LocalIP`
+
 **config**: Manage configuration
 - `config init`: Interactive setup wizard
 - `config set <key> <value>`: Set individual values

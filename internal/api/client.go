@@ -60,15 +60,27 @@ type GitInfo struct {
 
 // CreateEntryRequest is the request body for creating an entry
 type CreateEntryRequest struct {
-	Title      string   `json:"title"`
-	Content    string   `json:"content"`
-	Context    string   `json:"context,omitempty"` // job, project, fun
-	Mood       string   `json:"mood,omitempty"`
-	Tags       []string `json:"tags,omitempty"`
-	Visibility string   `json:"visibility,omitempty"`
-	Source     string   `json:"source,omitempty"`     // cli, claude-code, cursor, etc.
-	Repository string   `json:"repository,omitempty"` // repository name
-	Git        *GitInfo `json:"git,omitempty"`
+	Title      string       `json:"title"`
+	Content    string       `json:"content"`
+	Context    string       `json:"context,omitempty"` // job, project, fun
+	Mood       string       `json:"mood,omitempty"`
+	Tags       []string     `json:"tags,omitempty"`
+	Visibility string       `json:"visibility,omitempty"`
+	Source     string       `json:"source,omitempty"`     // cli, claude-code, cursor, etc.
+	Repository string       `json:"repository,omitempty"` // repository name
+	Type       string       `json:"type,omitempty"`       // log (default) or machine-event
+	Machine    *MachineInfo `json:"machine,omitempty"`    // structured machine-event metadata
+	Git        *GitInfo     `json:"git,omitempty"`
+}
+
+// MachineInfo is structured metadata for a machine-event entry (e.g. a login).
+type MachineInfo struct {
+	EventKind string `json:"eventKind,omitempty"` // login, logout
+	Hostname  string `json:"hostname,omitempty"`
+	Username  string `json:"username,omitempty"`
+	LocalIP   string `json:"localIp,omitempty"`
+	PublicIP  string `json:"publicIp,omitempty"`
+	OSArch    string `json:"osArch,omitempty"`
 }
 
 // CreateEntryResponse is the response from creating an entry
