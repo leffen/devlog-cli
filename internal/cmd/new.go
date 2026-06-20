@@ -28,6 +28,7 @@ var (
 	newStdin      bool
 	newSource     string
 	newRepo       string
+	newImages     []string
 )
 
 var newCmd = &cobra.Command{
@@ -58,7 +59,10 @@ Examples:
   devlog new --editor
 
   # With tags
-  devlog new -t "Bug fix" -c "Fixed memory leak" --tags "bugfix,performance"`,
+  devlog new -t "Bug fix" -c "Fixed memory leak" --tags "bugfix,performance"
+
+  # With an image placeholder
+  devlog new -t "Feed UI fix" -c "Before/after render: {{image:after-feed}}" --image after-feed.png`,
 	Run: runNew,
 }
 
@@ -141,6 +145,13 @@ func runNew(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	images, err := loadEntryImages(newImages)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading images: %s\n", err)
+		os.Exit(1)
+	}
+	content = appendMissingImagePlaceholders(content, images)
+
 	// Determine source (default to "cli")
 	source := newSource
 	if source == "" {
@@ -165,6 +176,7 @@ func runNew(cmd *cobra.Command, args []string) {
 		Visibility: newVisibility,
 		Source:     source,
 		Repository: repo,
+		Images:     images,
 	}
 
 	// Add git context if requested
@@ -195,6 +207,12 @@ func runNew(cmd *cobra.Command, args []string) {
 	fmt.Printf("  Context: %s\n", resp.Context)
 	if len(resp.Tags) > 0 {
 		fmt.Printf("  Tags: %s\n", strings.Join(resp.Tags, ", "))
+	}
+	if len(images) > 0 {
+		fmt.Printf("  Images: %d\n", len(images))
+		for _, image := range images {
+			fmt.Printf("    %s -> {{image:%s}}\n", image.Filename, image.ID)
+		}
 	}
 }
 
@@ -302,4 +320,5 @@ func init() {
 	newCmd.Flags().BoolVar(&newAutoTitle, "auto-title", false, "Auto-generate title from content")
 	newCmd.Flags().StringVar(&newSource, "source", "", "Source/agent identifier (default: cli)")
 	newCmd.Flags().StringVar(&newRepo, "repo", "", "Repository name (auto-detected from git if not set)")
+	newCmd.Flags().StringArrayVarP(&newImages, "image", "I", nil, "Attach an image file. Repeatable. Use {{image:<filename-stem>}} in content.")
 }

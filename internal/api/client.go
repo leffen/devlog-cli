@@ -45,9 +45,19 @@ type Entry struct {
 	Visibility string   `json:"visibility,omitempty"` // private, public
 	Source     string   `json:"source,omitempty"`     // cli, claude-code, cursor, etc.
 	Repository string   `json:"repository,omitempty"` // repository name
+	Images     []Image  `json:"images,omitempty"`
 	Git        *GitInfo `json:"git,omitempty"`
 	CreatedAt  string   `json:"createdAt,omitempty"`
 	UpdatedAt  string   `json:"updatedAt,omitempty"`
+}
+
+// Image represents an image attached to an entry and referenced by {{image:id}} placeholders.
+type Image struct {
+	ID       string `json:"id"`
+	Alt      string `json:"alt"`
+	Src      string `json:"src"`
+	Filename string `json:"filename,omitempty"`
+	MimeType string `json:"mimeType,omitempty"`
 }
 
 // GitInfo represents git context in an entry
@@ -68,8 +78,9 @@ type CreateEntryRequest struct {
 	Visibility string       `json:"visibility,omitempty"`
 	Source     string       `json:"source,omitempty"`     // cli, claude-code, cursor, etc.
 	Repository string       `json:"repository,omitempty"` // repository name
-	Type       string       `json:"type,omitempty"`       // log (default) or machine-event
-	Machine    *MachineInfo `json:"machine,omitempty"`    // structured machine-event metadata
+	Images     []Image      `json:"images,omitempty"`
+	Type       string       `json:"type,omitempty"`    // log (default) or machine-event
+	Machine    *MachineInfo `json:"machine,omitempty"` // structured machine-event metadata
 	Git        *GitInfo     `json:"git,omitempty"`
 }
 
@@ -94,6 +105,7 @@ type CreateEntryResponse struct {
 	Visibility string   `json:"visibility"`
 	Source     string   `json:"source"`
 	Repository string   `json:"repository"`
+	Images     []Image  `json:"images,omitempty"`
 	CreatedAt  string   `json:"createdAt"`
 	Message    string   `json:"message"`
 }
